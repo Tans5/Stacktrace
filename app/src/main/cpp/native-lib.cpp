@@ -4,6 +4,15 @@
 #include <iostream>
 #include "dump_stack.h"
 #include "android_log.h"
+#include "crash_monitor.h"
+
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_tans_stacktrace_MainActivity_registerCrashMonitor(
+        JNIEnv* env,
+        jobject /* this */) {
+    registerCrashMonitor();
+}
 
 int add5DumpStack(int num,  DumpStackResult* dumpResult) {
     dumpStack(dumpResult);
@@ -33,4 +42,21 @@ Java_com_tans_stacktrace_MainActivity_dumpTestThreadStack(
     free(stackResult.stacks);
     free(tempStackStr);
     return jStacks;
+}
+
+int add5DumpCrash(int num) {
+    abort();
+    return num + 5;
+}
+
+int add10DumpCrash(int num) {
+    int result1 = add5DumpCrash(num);
+    return result1;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_tans_stacktrace_MainActivity_testCrash(
+        JNIEnv* env,
+        jobject /* this */) {
+    add10DumpCrash(20);
 }

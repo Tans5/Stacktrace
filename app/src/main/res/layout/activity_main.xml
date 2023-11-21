@@ -19,6 +19,12 @@
             android:layout_height="wrap_content"
             android:text="Native Stack" />
 
+        <Button
+            android:id="@+id/native_crash_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Native Crash"/>
+
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView

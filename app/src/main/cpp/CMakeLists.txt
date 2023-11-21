@@ -29,7 +29,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         native-lib.cpp
         dump_stack.cpp
         dump_stack.h
-        android_log.h)
+        android_log.h
+        crash_monitor.h
+        crash_monitor.cpp)
 
 ## Specifies libraries CMake should link to your target library. You
 ## can link libraries from various origins, such as libraries defined in this

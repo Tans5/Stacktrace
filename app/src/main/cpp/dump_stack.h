@@ -1,5 +1,5 @@
-#ifndef ELFTEST_DUMP_STACK_H
-#define ELFTEST_DUMP_STACK_H
+#ifndef STACKTRACE_DUMP_STACK_H
+#define STACKTRACE_DUMP_STACK_H
 
 #include <unwind.h>
 #include <dlfcn.h>
@@ -27,4 +27,4 @@ typedef struct DumpStackResult {
  */
 void dumpStack(DumpStackResult* result);
 
-#endif //ELFTEST_DUMP_STACK_H
+#endif //STACKTRACE_DUMP_STACK_H

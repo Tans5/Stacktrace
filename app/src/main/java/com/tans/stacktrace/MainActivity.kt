@@ -8,6 +8,10 @@ import java.lang.StringBuilder
 
 class MainActivity : AppCompatActivity() {
 
+    init {
+        registerCrashMonitor()
+    }
+
     private val binding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
@@ -23,9 +27,17 @@ class MainActivity : AppCompatActivity() {
             }
             binding.outputTv.text = string.toString()
         }
+
+        binding.nativeCrashBt.setOnClickListener {
+            testCrash()
+        }
     }
 
+    private external fun registerCrashMonitor()
+
     private external fun dumpTestThreadStack(): Array<String>
+
+    private external fun testCrash()
 
     companion object {
         init {
