@@ -34,7 +34,7 @@ void dumpStack(DumpStackResult* result, int skip) {
                 continue;
             }
             void* inst_addr_in_mem = pcBuffer[i];
-            int offset = result->maxSingleStackSize * i;
+            int offset = result->maxSingleStackSize * indexInStack;
             char *target_output = result->stacks + offset;
             if (dladdr(inst_addr_in_mem, &dl_info)) {
                 const char *so_file_path = dl_info.dli_fname;
@@ -49,13 +49,12 @@ void dumpStack(DumpStackResult* result, int skip) {
                     sprintf(target_output, "#%02d pc %016lx  %s (%s+%ld)", indexInStack, inst_addr_in_text, so_file_path, method_name, inst_offset);
                 }
             } else {
-                sprintf(target_output, "#%02d", i);
+                sprintf(target_output, "#%02d", indexInStack);
             }
         }
         result->size = size;
     } else {
         result->size = 0;
-        result->stacks = nullptr;
     }
 }
 

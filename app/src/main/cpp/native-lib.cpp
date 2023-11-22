@@ -31,8 +31,9 @@ Java_com_tans_stacktrace_MainActivity_dumpTestThreadStack(
     DumpStackResult stackResult;
     stackResult.stacks = static_cast<char *>(malloc(stackResult.maxStackSize * stackResult.maxSingleStackSize));
     add10DumpStack(20, &stackResult);
+    printStackResult(&stackResult);
     jobjectArray jStacks = env->NewObjectArray(stackResult.size, env->FindClass("java/lang/String"), nullptr);
-    char *tempStackStr = static_cast<char *>(malloc(stackResult.maxStackSize));
+    char *tempStackStr = static_cast<char *>(malloc(stackResult.maxSingleStackSize));
     for (int i = 0; i < stackResult.size; i ++) {
         char *targetStr = stackResult.stacks + i * stackResult.maxSingleStackSize;
         memcpy(tempStackStr, targetStr, stackResult.maxSingleStackSize);
