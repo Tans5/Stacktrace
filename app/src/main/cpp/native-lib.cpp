@@ -15,7 +15,7 @@ Java_com_tans_stacktrace_MainActivity_registerCrashMonitor(
 }
 
 int add5DumpStack(int num,  DumpStackResult* dumpResult) {
-    dumpStack(dumpResult);
+    dumpStack(dumpResult, 1);
     return num + 5;
 }
 

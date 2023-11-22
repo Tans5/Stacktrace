@@ -25,6 +25,8 @@ typedef struct DumpStackResult {
  * @param result output result.
  * @return the stack size
  */
-void dumpStack(DumpStackResult* result);
+void dumpStack(DumpStackResult* result, int skip);
+
+void printStackResult(DumpStackResult* result);
 
 #endif //STACKTRACE_DUMP_STACK_H

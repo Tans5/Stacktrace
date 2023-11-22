@@ -14,14 +14,8 @@ static void sigHandler(int sig, siginfo_t *sig_info, void * uc) {
     DumpStackResult stackResult;
     stackResult.stacks = static_cast<char *>(malloc(
             stackResult.maxSingleStackSize * stackResult.maxStackSize));
-    dumpStack(&stackResult);
-    char *tempStr = static_cast<char *>(malloc(stackResult.maxSingleStackSize));
-    for (int i = 0; i < stackResult.size; i ++) {
-        char *str = stackResult.stacks + i * stackResult.maxSingleStackSize;
-        memcpy(tempStr, str, stackResult.maxSingleStackSize);
-        LOGE("%s", tempStr);
-    }
-    free(tempStr);
+    dumpStack(&stackResult, 1);
+    printStackResult(&stackResult);
     free(stackResult.stacks);
 }
 
