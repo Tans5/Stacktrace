@@ -7,11 +7,17 @@
 static _Unwind_Reason_Code singleStackPcUnwind(_Unwind_Context *ctx, void *pcState) {
     auto* state = static_cast<DumpStackPcState *> (pcState);
     uintptr_t pc = _Unwind_GetIP(ctx);
+    int pcOffset = 0;
+#if defined(__arm__)
+    pcOffset = -4;
+#elif defined(__aarch64__)
+    pcOffset = -4;
+#endif
     if (pc) {
         if (state->pcStart == state->pcEnd) {
             return _URC_END_OF_STACK;
         } else {
-            *state->pcStart++ = reinterpret_cast<void*>(pc);
+            *state->pcStart++ = reinterpret_cast<void*>(pc + pcOffset);
         }
     }
     return _URC_NO_REASON;
