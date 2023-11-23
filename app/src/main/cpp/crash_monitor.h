@@ -15,6 +15,6 @@ typedef struct CrashData {
     DumpStackResult stackResult;
 } CrashData;
 
-void registerCrashMonitor(JNIEnv* env, jobject obj, const char * cacheFilePath, int cacheFilePathLen, void (* crashHandle)(JNIEnv *, jobject, CrashData*));
+void registerCrashMonitor(JavaVM *jvm, JNIEnv* env, jobject obj, const char * cacheFilePath, int cacheFilePathLen, void (* crashHandle)(JNIEnv *, jobject, CrashData*));
 
 #endif //STACKTRACE_CRASH_MONITOR_H

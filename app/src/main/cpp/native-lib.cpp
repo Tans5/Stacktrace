@@ -6,8 +6,10 @@
 #include "android_log.h"
 #include "crash_monitor.h"
 
-static jclass javaCrashHandleClazz = nullptr;
-static jmethodID javaCrashHandleMethodId = nullptr;
+static JavaVM *gJvm;
+static JNIEnv *gEnv;
+static jclass gClazz;
+static jmethodID gJavaCrashHandleMethodId;
 
 void crashHandle(JNIEnv *env, jobject obj, CrashData *crashData) {
     LOGD("Crash handle receive: %s, %s, %lld", crashData->sigName, crashData -> sigSubName, obj);
@@ -27,8 +29,8 @@ void crashHandle(JNIEnv *env, jobject obj, CrashData *crashData) {
         free(tempStackStr);
     }
     env->CallStaticVoidMethod(
-            javaCrashHandleClazz,
-            javaCrashHandleMethodId ,
+            gClazz,
+            gJavaCrashHandleMethodId,
             crashData->tid,
             crashData->sig,
             jSigName,
@@ -36,6 +38,19 @@ void crashHandle(JNIEnv *env, jobject obj, CrashData *crashData) {
             jSigSubName,
             (long long) crashData->time,
             jStacks);
+}
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved) {
+    JNIEnv *env;
+    jvm->GetEnv((void **)&env, JNI_VERSION_1_6);
+    gJvm = jvm;
+    gEnv = env;
+    auto clazz = env->FindClass("com/tans/stacktrace/MainActivity");
+    gClazz = static_cast<jclass>(env->NewGlobalRef(clazz));
+    gJavaCrashHandleMethodId = env->GetStaticMethodID(clazz, "handleNativeCrash",
+                           "(IILjava/lang/String;ILjava/lang/String;J[Ljava/lang/String;)V");
+
+    return JNI_VERSION_1_6;
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -47,13 +62,7 @@ Java_com_tans_stacktrace_MainActivity_registerCrashMonitor(
     env->GetStringLength(cacheFile);
     const char *cacheFilePath = env->GetStringUTFChars(cacheFile, &copy);
     int cacheFilePathLen = env->GetStringLength(cacheFile);
-    if (javaCrashHandleMethodId == nullptr) {
-        jclass clazz = env->GetObjectClass(obj);
-        javaCrashHandleClazz = clazz;
-        javaCrashHandleMethodId = env->GetStaticMethodID(clazz, "handleNativeCrash",
-                                            "(IILjava/lang/String;ILjava/lang/String;J[Ljava/lang/String;)V");
-    }
-    registerCrashMonitor(env, obj, cacheFilePath, cacheFilePathLen, crashHandle);
+    registerCrashMonitor(gJvm, gEnv, obj, cacheFilePath, cacheFilePathLen, crashHandle);
 }
 
 int add5DumpStack(int num,  DumpStackResult* dumpResult) {

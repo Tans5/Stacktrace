@@ -314,7 +314,7 @@ static void* crashHandleRoutine(void* args) {
     return nullptr;
 }
 
-void registerCrashMonitor(JNIEnv *env, jobject obj, const char *cacheFilePath, int cacheFilePathLen, void (* crashHandle)(JNIEnv *, jobject, CrashData*)) {
+void registerCrashMonitor(JavaVM* jvm, JNIEnv *env, jobject obj, const char *cacheFilePath, int cacheFilePathLen, void (* crashHandle)(JNIEnv *, jobject, CrashData*)) {
     if (isRegisterMonitor) {
         return;
     }
@@ -347,8 +347,6 @@ void registerCrashMonitor(JNIEnv *env, jobject obj, const char *cacheFilePath, i
         crashNotifyFd = eventfd(0, EFD_CLOEXEC);
         if (crashNotifyFd > 0) {
             LOGD("Create notify fd success: %d", crashNotifyFd);
-            JavaVM *jvm;
-            env->GetJavaVM(&jvm);
             auto *args = new CrashHandleThreadArgs;
             args->env = env;
             args->jvm = jvm;
