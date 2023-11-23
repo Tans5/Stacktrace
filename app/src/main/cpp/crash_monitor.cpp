@@ -29,9 +29,11 @@ typedef struct CrashHandleThreadArgs {
     void (* crashHandle)(JNIEnv *, jobject, CrashData*);
 } CrashHandleThreadArgs;
 
+typedef struct sigaction sigaction_s;
+
 typedef struct SigActionInfo {
     int sig;
-    struct sigaction oldAct;
+    sigaction_s *oldAct = new sigaction_s;
 } SigActionInfo;
 
 static SigActionInfo sigActionInfos[] = {
@@ -45,13 +47,13 @@ static SigActionInfo sigActionInfos[] = {
         {.sig = SIGSTKFLT}
 };
 
-static struct sigaction* findOldAct(int sig) {
+static sigaction_s *findOldAct(int sig) {
     int size = sizeof(sigActionInfos) / sizeof(SigActionInfo);
-    struct sigaction *result = nullptr;
+    sigaction_s *result = nullptr;
     for (int i = 0; i < size; i ++) {
         SigActionInfo info = sigActionInfos[i];
         if (info.sig == sig) {
-            result = &info.oldAct;
+            result = info.oldAct;
             break;
         }
     }
@@ -186,7 +188,9 @@ static void sigHandler(int sig, siginfo_t *sig_info, void *uc) {
     auto oldAct = findOldAct(sig);
     if (hasReceiveSig) {
         LOGE("Skip handle signal.");
-        oldAct->sa_sigaction(sig, sig_info, uc);
+        if (oldAct != nullptr) {
+            oldAct->sa_sigaction(sig, sig_info, uc);
+        }
         return;
     }
     hasReceiveSig = true;
@@ -236,7 +240,9 @@ static void sigHandler(int sig, siginfo_t *sig_info, void *uc) {
         }
         pthread_join(crashHandleThread, nullptr);
         LOGD("Dump process finished: %d", status);
-        oldAct->sa_sigaction(sig, sig_info, uc);
+        if (oldAct != nullptr) {
+            oldAct->sa_sigaction(sig, sig_info, uc);
+        }
     }
 }
 
@@ -330,7 +336,7 @@ void registerCrashMonitor(JavaVM* jvm, JNIEnv *env, jobject obj, const char *cac
     newStack.ss_size = crashStackSize;
     newStack.ss_sp = malloc(crashStackSize);
     sigaltstack(&newStack, nullptr);
-    struct sigaction sigAction{};
+    sigaction_s sigAction{};
     sigfillset(&sigAction.sa_mask);
     sigAction.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
     sigAction.sa_sigaction = sigHandler;
@@ -338,7 +344,7 @@ void registerCrashMonitor(JavaVM* jvm, JNIEnv *env, jobject obj, const char *cac
     int ret = 1;
     for (int i = 0; i < sigActionInfoSize; i ++) {
         SigActionInfo info = sigActionInfos[i];
-        if (sigaction(info.sig, &sigAction, &info.oldAct) == 0) {
+        if (sigaction(info.sig, &sigAction, info.oldAct) == 0) {
             ret = 0;
         }
     }
