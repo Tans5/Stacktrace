@@ -1,5 +1,6 @@
 package com.tans.stacktrace
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.ActivityManager.RunningAppProcessInfo
 import androidx.appcompat.app.AppCompatActivity
@@ -12,7 +13,10 @@ import androidx.core.content.getSystemService
 import com.tans.stacktrace.databinding.ActivityMainBinding
 import java.io.File
 import java.io.FileReader
+import java.io.FileWriter
 import java.lang.StringBuilder
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 class MainActivity : AppCompatActivity() {
@@ -21,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+    @SuppressLint("SimpleDateFormat")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -42,6 +47,29 @@ class MainActivity : AppCompatActivity() {
             Thread({
                    testCrash()
             }, "TestCrashThread").start()
+        }
+
+        binding.getLastCrashBt.setOnClickListener {
+            val crashFileNameRegex = "^([0-9]+).txt$".toRegex()
+            val dir = getNativeCrashDir()
+            val lastCrashCacheFile = dir.listFiles()?.toList()?.sortedByDescending { it.lastModified() }?.find {
+                crashFileNameRegex.matches(it.name)
+            }
+            if (lastCrashCacheFile != null) {
+                val time = crashFileNameRegex.find(lastCrashCacheFile.name)?.groupValues?.get(1)?.toLongOrNull()
+                if (time != null) {
+                    val timeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    val timeString = timeFormat.format(Date(time))
+                    val outputText = StringBuilder()
+                    outputText.appendLine(timeString)
+                    outputText.appendLine()
+                    val content = FileReader(lastCrashCacheFile).use {
+                        it.readText()
+                    }
+                    outputText.appendLine(content)
+                    binding.outputTv.text = outputText.toString()
+                }
+            }
         }
     }
 
@@ -96,6 +124,24 @@ class MainActivity : AppCompatActivity() {
             for (s in javaStacks) {
                 Log.d(TAG, s)
             }
+            val nativeCrashDir = getNativeCrashDir()
+            val file = File(nativeCrashDir, "$time.txt")
+            file.createNewFile()
+            try {
+                FileWriter(file).use {
+                    it.appendLine(title)
+                    it.appendLine()
+                    it.appendLine()
+                    for (s in stacks) {
+                        it.appendLine("     $s")
+                    }
+                    for (s in javaStacks) {
+                        it.appendLine("     $s")
+                    }
+                }
+            } catch (e: Throwable) {
+                Log.e(TAG, "Write cache file fail: ${e.message}", e)
+            }
         }
 
         private fun getThreadNameByTid(tid: Int): String {
@@ -142,6 +188,18 @@ class MainActivity : AppCompatActivity() {
                 threads.mapNotNull { it }.toTypedArray()
             } else {
                 emptyArray()
+            }
+        }
+
+        private fun getNativeCrashDir(): File {
+            val app = MyApplication.app!!
+            val parent = app.externalCacheDir
+            val dir = File(parent, "NativeCrash")
+            return if (dir.isDirectory) {
+                dir
+            } else {
+                dir.mkdirs()
+                dir
             }
         }
     }
