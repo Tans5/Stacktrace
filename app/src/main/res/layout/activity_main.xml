@@ -8,7 +8,7 @@
         android:id="@+id/action_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -23,8 +23,13 @@
             android:id="@+id/native_crash_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Native Crash"/>
+            android:text="Native Crash Main Thread"/>
 
+        <Button
+            android:id="@+id/native_crash_new_thread_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Native Crash New Thread"/>
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView

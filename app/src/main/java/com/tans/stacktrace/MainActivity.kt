@@ -1,9 +1,14 @@
 package com.tans.stacktrace
 
+import android.app.ActivityManager
+import android.app.ActivityManager.RunningAppProcessInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Looper
+import android.os.Process
 import android.util.Log
 import androidx.annotation.Keep
+import androidx.core.content.getSystemService
 import com.tans.stacktrace.databinding.ActivityMainBinding
 import java.io.File
 import java.lang.StringBuilder
@@ -31,6 +36,12 @@ class MainActivity : AppCompatActivity() {
         binding.nativeCrashBt.setOnClickListener {
             testCrash()
         }
+
+        binding.nativeCrashNewThreadBt.setOnClickListener {
+            Thread({
+                testCrash()
+            }, "TestCrashTread").start()
+        }
     }
 
     private fun registerCrashMonitor() {
@@ -56,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         init {
             System.loadLibrary("stacktrace")
         }
-        const val TAG = "Stacktrace_MainActivity"
+        private const val TAG = "Stacktrace_MainActivity"
 
         @Keep
         @JvmStatic
@@ -69,7 +80,37 @@ class MainActivity : AppCompatActivity() {
             time: Long,
             stacks: Array<String>
         ) {
-            Log.d(TAG, "Receive Native crash: $sigName")
+            val crashThread = findThreadByTid(tid)
+            val currentProcessInfo = getCurrentProcess()
+            val title = "Fatal signal $sig ($sigName), code $sigSub ($sigSubName) in tid $tid (${ crashThread?.name ?: "Unknown" }), pid ${Process.myPid()} (${currentProcessInfo?.processName ?: "Unknown"})"
+            Log.d(TAG, title)
+            for (s in stacks) {
+                Log.d(TAG, s)
+            }
+            val javaStackTraces = Thread.getAllStackTraces().toList().find { it.first == crashThread }?.second
+            val javaStacks = javaStackTraces?.map {
+                "at $it"
+            } ?: emptyList()
+            for (s in javaStacks) {
+                Log.d(TAG, s)
+            }
+        }
+
+        private fun findThreadByTid(tid: Int): Thread? {
+            val pid = Process.myPid()
+            return if (pid == tid) {
+                // MainThread
+                Looper.getMainLooper().thread
+            } else {
+                Thread.getAllStackTraces().keys.find { it.id == tid.toLong() }
+            }
+        }
+
+        private fun getCurrentProcess(): RunningAppProcessInfo? {
+            val app = MyApplication.app!!
+            val am = app.getSystemService<ActivityManager>()
+            val pid = Process.myPid()
+            return am?.runningAppProcesses?.find { it.pid == pid }
         }
     }
 }
