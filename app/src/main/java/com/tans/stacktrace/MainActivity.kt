@@ -71,6 +71,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        binding.alloc10mbBt.setOnClickListener {
+            testAllocMem(10 * 1024 * 1024)
+        }
+
+        binding.freeTestMemBt.setOnClickListener {
+            freeAllTestMem()
+        }
+
+        binding.dumpMemBt.setOnClickListener {
+            // TODO:
+        }
     }
 
     private fun registerCrashMonitor() {
@@ -92,9 +104,16 @@ class MainActivity : AppCompatActivity() {
     @Keep
     private external fun testCrash()
 
+    @Keep
+    private external fun testAllocMem(size: Long)
+
+    @Keep
+    private external fun freeAllTestMem()
+
     companion object {
         init {
             System.loadLibrary("stacktrace")
+            System.loadLibrary("memalloctest")
         }
         private const val TAG = "Stacktrace_MainActivity"
 

@@ -5,12 +5,12 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/action_layout"
+        android:id="@+id/action1_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/action2_layout"
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
@@ -46,12 +46,46 @@
             android:padding="5dp" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/action2_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/action1_layout">
+
+        <Button
+            android:id="@+id/alloc_10mb_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alloc 10 Mb"
+            android:textSize="11sp"
+            android:padding="5dp" />
+
+        <Button
+            android:id="@+id/free_test_mem_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Free Test Mem"
+            android:textSize="11sp"
+            android:padding="5dp" />
+
+        <Button
+            android:id="@+id/dump_mem_bt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dump Mem"
+            android:textSize="11sp"
+            android:padding="5dp" />
+    </LinearLayout>
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/action_layout"
+        app:layout_constraintTop_toBottomOf="@id/action1_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
