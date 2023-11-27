@@ -19,9 +19,15 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         android
         log)
 
+target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES LINK_FLAGS -fsanitize=address)
+
 add_library(memalloctest SHARED
         memalloctest/mem_alloc_test_jni.cpp)
 
 target_link_libraries(memalloctest
         android
         log)
+
+target_compile_options(memalloctest PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+set_target_properties(memalloctest PROPERTIES LINK_FLAGS -fsanitize=address)

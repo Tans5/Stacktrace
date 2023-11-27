@@ -15,6 +15,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                arguments.add("-DANDROID_ARM_MODE=arm")
+                arguments.add("-DANDROID_STL=c++_shared")
+            }
+        }
     }
 
     buildTypes {
@@ -43,8 +50,14 @@ android {
         viewBinding = true
     }
 
-    packagingOptions {
-        doNotStrip.add("*/arm64-v8a/*.so")
+    packaging {
+        jniLibs {
+            keepDebugSymbols.add("*/arm64-v8a/*.so")
+            keepDebugSymbols.add("*/armeabi-v7a/*.so")
+            keepDebugSymbols.add("*/x86/*.so")
+            keepDebugSymbols.add("*/x86_64/*.so")
+            useLegacyPackaging = true
+        }
     }
 }
 
