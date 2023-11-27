@@ -38,6 +38,7 @@ Java_com_tans_stacktrace_MainActivity_freeAllTestMem(
     if (memArraySize <= 0) return;
     for (int i = 0; i < memArraySize; i ++) {
         auto data = testMemArray[i];
+        testMemArray[i] = nullptr;
         free(data);
     }
     free(testMemArray);
