@@ -3,7 +3,7 @@
 #include <sys/system_properties.h>
 #include <iostream>
 #include "dump_stack.h"
-#include "android_log.h"
+#include "../android_log.h"
 #include "crash_monitor.h"
 
 static JavaVM *gJvm;

@@ -3,7 +3,7 @@
 
 #include <jni.h>
 #include "dump_stack.h"
-#include "android_log.h"
+#include "../android_log.h"
 
 typedef struct CrashData {
     int tid = 0;

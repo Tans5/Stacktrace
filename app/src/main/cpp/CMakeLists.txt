@@ -26,12 +26,12 @@ project("stacktrace")
 # used in the AndroidManifest.xml file.
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native-lib.cpp
-        dump_stack.cpp
-        dump_stack.h
+        stacktrack/stackstrace_jni.cpp
+        stacktrack/dump_stack.cpp
+        stacktrack/dump_stack.h
         android_log.h
-        crash_monitor.h
-        crash_monitor.cpp)
+        stacktrack/crash_monitor.h
+        stacktrack/crash_monitor.cpp)
 
 ## Specifies libraries CMake should link to your target library. You
 ## can link libraries from various origins, such as libraries defined in this

@@ -17,25 +17,33 @@
             android:id="@+id/native_stack_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Native Stack" />
+            android:text="Native Stack"
+            android:textSize="11sp"
+            android:padding="5dp" />
 
         <Button
             android:id="@+id/native_crash_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Native Crash Main Thread"/>
+            android:text="Crash Main Thread"
+            android:textSize="11sp"
+            android:padding="5dp" />
 
         <Button
             android:id="@+id/native_crash_new_thread_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Native Crash New Thread"/>
+            android:text="Crash New Thread"
+            android:textSize="11sp"
+            android:padding="5dp" />
 
         <Button
             android:id="@+id/get_last_crash_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Get Last Crash Info"/>
+            android:text="Get Last Crash Info"
+            android:textSize="11sp"
+            android:padding="5dp" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView

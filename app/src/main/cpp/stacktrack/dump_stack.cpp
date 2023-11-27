@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "dump_stack.h"
-#include "android_log.h"
+#include "../android_log.h"
 
 static _Unwind_Reason_Code singleStackPcUnwind(_Unwind_Context *ctx, void *pcState) {
     auto* state = static_cast<DumpStackPcState *> (pcState);
