@@ -66,6 +66,7 @@ void dumpStack(DumpStackResult* result, int skip) {
 
 void printStackResult(DumpStackResult *result) {
     char *tempStr = static_cast<char *>(malloc(result->maxSingleStackSize));
+    memset(tempStr, 0, result->maxSingleStackSize);
     for (int i = 0; i < result->size; i ++) {
         char *str = result->stacks + i * result->maxSingleStackSize;
         memcpy(tempStr, str, result->maxSingleStackSize);

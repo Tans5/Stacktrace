@@ -199,8 +199,9 @@ static void sigHandler(int sig, siginfo_t *sig_info, void *uc) {
         // New process
         LOGD("Dump process start");
         DumpStackResult stackResult;
-        stackResult.stacks = static_cast<char *>(malloc(
-                stackResult.maxSingleStackSize * stackResult.maxStackSize));
+        int stacksByteSize = stackResult.maxSingleStackSize * stackResult.maxStackSize;
+        stackResult.stacks = static_cast<char *>(malloc(stacksByteSize));
+        memset(stackResult.stacks, 0, stacksByteSize);
         dumpStack(&stackResult, 1);
         printStackResult(&stackResult);
         int cacheFd = open(cacheFile, O_WRONLY);

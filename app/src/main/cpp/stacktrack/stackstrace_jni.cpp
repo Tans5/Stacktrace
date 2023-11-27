@@ -80,12 +80,15 @@ Java_com_tans_stacktrace_MainActivity_dumpTestThreadStack(
         JNIEnv* env,
         jobject /* this */) {
     DumpStackResult stackResult;
-    stackResult.stacks = static_cast<char *>(malloc(stackResult.maxStackSize * stackResult.maxSingleStackSize));
+    int stacksBytesSize = stackResult.maxStackSize * stackResult.maxSingleStackSize;
+    stackResult.stacks = static_cast<char *>(malloc(stacksBytesSize));
+    memset(stackResult.stacks, 0, stacksBytesSize);
     add10DumpStack(20, &stackResult);
     printStackResult(&stackResult);
     jobjectArray jStacks = env->NewObjectArray(stackResult.size, env->FindClass("java/lang/String"), nullptr);
     for (int i = 0; i < stackResult.size; i ++) {
         char *tempStackStr = static_cast<char *>(malloc(stackResult.maxSingleStackSize));
+        memset(tempStackStr, 0, stackResult.maxSingleStackSize);
         char *targetStr = stackResult.stacks + i * stackResult.maxSingleStackSize;
         memcpy(tempStackStr, targetStr, stackResult.maxSingleStackSize);
         auto jString = env->NewStringUTF(tempStackStr);
