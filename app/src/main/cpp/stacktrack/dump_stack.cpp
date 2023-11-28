@@ -98,7 +98,7 @@ void printStackResult(DumpStackResult *result) {
     offsetsResult.maxOffsetsSize = result->stackSize;
     offsetsResult.offsets = static_cast<int *>(malloc(sizeof(int) * result->stackSize));
     computeStringsOffsets(result->stacks, result->stackStrSize, &offsetsResult);
-    for (int i = 0; i < offsetsResult.offsetsSize + 1; i ++) {
+    for (int i = 0; i < offsetsResult.offsetsSize; i ++) {
         char *str = result->stacks + offsetsResult.offsets[i];
         LOGE("%s", str);
     }

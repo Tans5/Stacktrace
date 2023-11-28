@@ -84,7 +84,7 @@ Java_com_tans_stacktrace_MainActivity_dumpTestThreadStack(
     DumpStackResult stackResult;
     stackResult.stacks = static_cast<char *>(malloc(stackResult.maxStackStrSize));
     add10DumpStack(20, &stackResult);
-    // printStackResult(&stackResult);
+    printStackResult(&stackResult);
     StringsOffsetsResult offsetsResult;
     offsetsResult.offsets = static_cast<int *>(malloc(stackResult.stackSize * sizeof(int)));
     offsetsResult.maxOffsetsSize = stackResult.stackSize;
