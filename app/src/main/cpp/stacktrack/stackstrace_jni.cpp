@@ -18,16 +18,18 @@ void crashHandle(JNIEnv *env, jobject obj, CrashData *crashData) {
     jstring jSigName = env->NewStringUTF(crashData->sigName);
     jstring jSigSubName = env->NewStringUTF(crashData->sigSubName);
     auto stackResult = crashData->stackResult;
-    jobjectArray jStacks = env->NewObjectArray(stackResult.size, env->FindClass("java/lang/String"), nullptr);
-    for (int i = 0; i < stackResult.size; i ++) {
-        char *tempStackStr = static_cast<char *>(malloc(stackResult.maxSingleStackSize));
-        char *targetStr = stackResult.stacks + i * stackResult.maxSingleStackSize;
-        memcpy(tempStackStr, targetStr, stackResult.maxSingleStackSize);
-        auto jString = env->NewStringUTF(tempStackStr);
+    StringsOffsetsResult offsetsResult;
+    offsetsResult.offsets = static_cast<int *>(malloc(sizeof(int) * stackResult.stackStrSize));
+    offsetsResult.maxOffsetsSize = stackResult.stackSize;
+    computeStringsOffsets(stackResult.stacks, &offsetsResult);
+    jobjectArray jStacks = env->NewObjectArray(offsetsResult.offsetsSize, env->FindClass("java/lang/String"), nullptr);
+    for (int i = 0; i < offsetsResult.offsetsSize; i ++) {
+        char *targetStr = stackResult.stacks + offsetsResult.offsets[i];
+        auto jString = env->NewStringUTF(targetStr);
         env->SetObjectArrayElement(jStacks, i, jString);
         env->DeleteLocalRef(jString);
-        free(tempStackStr);
     }
+    free(offsetsResult.offsets);
     env->CallStaticVoidMethod(
             gClazz,
             gJavaCrashHandleMethodId,
@@ -80,22 +82,21 @@ Java_com_tans_stacktrace_MainActivity_dumpTestThreadStack(
         JNIEnv* env,
         jobject /* this */) {
     DumpStackResult stackResult;
-    int stacksBytesSize = stackResult.maxStackSize * stackResult.maxSingleStackSize;
-    stackResult.stacks = static_cast<char *>(malloc(stacksBytesSize));
-    memset(stackResult.stacks, 0, stacksBytesSize);
+    stackResult.stacks = static_cast<char *>(malloc(stackResult.maxStackStrSize));
     add10DumpStack(20, &stackResult);
     printStackResult(&stackResult);
-    jobjectArray jStacks = env->NewObjectArray(stackResult.size, env->FindClass("java/lang/String"), nullptr);
-    for (int i = 0; i < stackResult.size; i ++) {
-        char *tempStackStr = static_cast<char *>(malloc(stackResult.maxSingleStackSize));
-        memset(tempStackStr, 0, stackResult.maxSingleStackSize);
-        char *targetStr = stackResult.stacks + i * stackResult.maxSingleStackSize;
-        memcpy(tempStackStr, targetStr, stackResult.maxSingleStackSize);
-        auto jString = env->NewStringUTF(tempStackStr);
+    StringsOffsetsResult offsetsResult;
+    offsetsResult.offsets = static_cast<int *>(malloc(stackResult.stackSize * sizeof(int)));
+    offsetsResult.maxOffsetsSize = stackResult.stackSize;
+    computeStringsOffsets(stackResult.stacks, &offsetsResult);
+    jobjectArray jStacks = env->NewObjectArray(offsetsResult.offsetsSize, env->FindClass("java/lang/String"), nullptr);
+    for (int i = 0; i < offsetsResult.offsetsSize; i ++) {
+        char *targetStr = stackResult.stacks + offsetsResult.offsets[i];
+        auto jString = env->NewStringUTF(targetStr);
         env->SetObjectArrayElement(jStacks, i, jString);
         env->DeleteLocalRef(jString);
-        free(tempStackStr);
     }
+    free(offsetsResult.offsets);
     free(stackResult.stacks);
     return jStacks;
 }

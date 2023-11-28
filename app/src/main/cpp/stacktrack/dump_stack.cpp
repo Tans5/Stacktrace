@@ -31,17 +31,19 @@ void dumpStack(DumpStackResult* result, int skip) {
     void *pcBuffer[result->maxStackSize];
     DumpStackPcState s = { pcBuffer, pcBuffer + result->maxStackSize };
     dumpStackPc(&s);
-    int size = s.pcStart - pcBuffer - skip;
+    int size = s.pcStart - pcBuffer;
     if (size > 0) {
         Dl_info dl_info;
+        int realWriteSize = 0;
+        int wroteOffsetInBytes = 0;
         for (int i = 0; i < size; i ++) {
             int indexInStack = i - skip;
             if (indexInStack < 0) {
                 continue;
             }
             void* inst_addr_in_mem = pcBuffer[i];
-            int offset = result->maxSingleStackSize * indexInStack;
-            char *target_output = result->stacks + offset;
+            char *target_output = result->stacks + wroteOffsetInBytes;
+            int thisTimeWroteSizeInBytes;
             if (dladdr(inst_addr_in_mem, &dl_info)) {
                 const char *so_file_path = dl_info.dli_fname;
                 const char *method_name = dl_info.dli_sname;
@@ -50,27 +52,53 @@ void dumpStack(DumpStackResult* result, int skip) {
                 long inst_addr_in_text = (long)inst_addr_in_mem - text_addr_in_mem;
                 long inst_offset = (long)inst_addr_in_mem - method_addr_in_mem;
                 if (!method_name) {
-                    sprintf(target_output, "#%02d pc %016lx  %s", indexInStack, inst_addr_in_text, so_file_path);
+                    thisTimeWroteSizeInBytes = sprintf(target_output, "#%02d pc %016lx  %s", indexInStack, inst_addr_in_text, so_file_path);
                 } else {
-                    sprintf(target_output, "#%02d pc %016lx  %s (%s+%ld)", indexInStack, inst_addr_in_text, so_file_path, method_name, inst_offset);
+                    thisTimeWroteSizeInBytes = sprintf(target_output, "#%02d pc %016lx  %s (%s+%ld)", indexInStack, inst_addr_in_text, so_file_path, method_name, inst_offset);
                 }
             } else {
-                sprintf(target_output, "#%02d", indexInStack);
+                thisTimeWroteSizeInBytes = sprintf(target_output, "#%02d", indexInStack);
+            }
+            target_output[thisTimeWroteSizeInBytes] = 0x00;
+            thisTimeWroteSizeInBytes += 1;
+            wroteOffsetInBytes += thisTimeWroteSizeInBytes;
+            realWriteSize ++;
+            if (wroteOffsetInBytes >= result->maxStackStrSize) {
+                result->stacks[result->maxStackStrSize - 1] = 0x00;
+                break;
             }
         }
-        result->size = size;
+        if (realWriteSize < size) {
+            size = realWriteSize;
+        }
+        result->stackSize = size;
     } else {
-        result->size = 0;
+        result->stackSize = 0;
     }
 }
 
-void printStackResult(DumpStackResult *result) {
-    char *tempStr = static_cast<char *>(malloc(result->maxSingleStackSize));
-    memset(tempStr, 0, result->maxSingleStackSize);
-    for (int i = 0; i < result->size; i ++) {
-        char *str = result->stacks + i * result->maxSingleStackSize;
-        memcpy(tempStr, str, result->maxSingleStackSize);
-        LOGE("%s", tempStr);
+void computeStringsOffsets(const char *strings, StringsOffsetsResult *result) {
+    result->offsets[0] = 0;
+    int strOffsetsIndex = 0;
+    for (int i = 0; i < result->maxOffsetsSize; i ++) {
+        if (strings[i] == 0x00) {
+            result->offsets[++strOffsetsIndex] = (i + 1);
+            if (strOffsetsIndex >= (result->maxOffsetsSize - 1)) {
+                break;
+            }
+        }
     }
-    free(tempStr);
+    result->offsetsSize = strOffsetsIndex + 1;
+}
+
+void printStackResult(DumpStackResult *result) {
+    StringsOffsetsResult offsetsResult;
+    offsetsResult.maxOffsetsSize = result->stackSize;
+    offsetsResult.offsets = static_cast<int *>(malloc(sizeof(int) * result->stackSize));
+    computeStringsOffsets(result->stacks, &offsetsResult);
+    for (int i = 0; i < offsetsResult.offsetsSize + 1; i ++) {
+        char *str = result->stacks + offsetsResult.offsets[i];
+        LOGE("%s", str);
+    }
+    free(offsetsResult.offsets);
 }

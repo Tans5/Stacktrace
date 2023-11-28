@@ -199,18 +199,18 @@ static void sigHandler(int sig, siginfo_t *sig_info, void *uc) {
         // New process
         LOGD("Dump process start");
         DumpStackResult stackResult;
-        int stacksByteSize = stackResult.maxSingleStackSize * stackResult.maxStackSize;
-        stackResult.stacks = static_cast<char *>(malloc(stacksByteSize));
-        memset(stackResult.stacks, 0, stacksByteSize);
+        stackResult.stacks = static_cast<char *>(malloc(stackResult.maxStackStrSize));
+        memset(stackResult.stacks, 0, stackResult.maxStackStrSize);
         dumpStack(&stackResult, 1);
         printStackResult(&stackResult);
         int cacheFd = open(cacheFile, O_WRONLY);
         if (cacheFd > 0) {
             int writeCount = 0;
-            writeCount += write(cacheFd, &stackResult.size, sizeof(stackResult.size));
-            writeCount += write(cacheFd, &stackResult.maxSingleStackSize, sizeof(stackResult.maxSingleStackSize));
+            writeCount += write(cacheFd, &stackResult.stackSize, sizeof(stackResult.stackSize));
+            writeCount += write(cacheFd, &stackResult.stackStrSize, sizeof(stackResult.stackStrSize));
             writeCount += write(cacheFd, &stackResult.maxStackSize, sizeof(stackResult.maxStackSize));
-            writeCount += write(cacheFd, stackResult.stacks, stackResult.maxSingleStackSize * stackResult.maxStackSize);
+            writeCount += write(cacheFd, &stackResult.maxStackStrSize, sizeof(stackResult.maxStackStrSize));
+            writeCount += write(cacheFd, stackResult.stacks, stackResult.stackStrSize);
             close(cacheFd);
             LOGD("Write to cache, writeSize=%d", writeCount);
         } else {
@@ -272,21 +272,25 @@ static void* crashHandleRoutine(void* args) {
                 struct stat cacheStat {};
                 stat(cacheFile, &cacheStat);
                 long long cacheSize = cacheStat.st_size;
-                LOGD("Cache file size: %lld", cacheSize);
+                LOGD("Cache file stackSize: %lld", cacheSize);
                 int cacheFd = 0;
                 if (cacheSize > 0) {
                     cacheFd = open(cacheFile, O_RDONLY);
                 }
                 if (cacheFd > 0) {
-                    int crashStackSize, maxSingleStackSize, maxStackSize;
-                    read(cacheFd, &crashStackSize, sizeof(int));
-                    read(cacheFd, &maxSingleStackSize, sizeof(int));
+                    int stackSize, stackStrSize, maxStackSize, maxStackStrSize;
+                    read(cacheFd, &stackSize, sizeof(int));
+                    read(cacheFd, &stackStrSize, sizeof(int));
                     read(cacheFd, &maxStackSize, sizeof(int));
-                    LOGD("CrashStackSize=%d, MaxSingleStackSize=%d, MaxStackSize=%d", crashStackSize, maxSingleStackSize, maxStackSize);
-                    if (crashStackSize > 0 && maxSingleStackSize > 0 && maxStackSize > 0) {
-                        char *stacks = static_cast<char *>(malloc(crashStackSize * maxSingleStackSize));
-                        read(cacheFd, stacks, crashStackSize * maxSingleStackSize);
-                        LOGD("Read stacks: %s", stacks);
+                    read(cacheFd, &maxStackStrSize, sizeof(int));
+                    LOGD("StackSize=%d, StackStrSize=%d, MaxStackSize=%d, MasStackStrSize=%d", stackSize, stackStrSize, maxStackSize, maxStackStrSize);
+                    if (stackSize > 0 && stackStrSize > 0) {
+                        char *stacks = static_cast<char *>(malloc(stackStrSize));
+                        int readStackStrSize = read(cacheFd, stacks, stackStrSize);
+                        if (readStackStrSize != stackStrSize) {
+                            LOGE("Wrong stack str size: %d, needed: %d", readStackStrSize, stackStrSize);
+                            break;
+                        }
                         CrashData crashData {
                             .tid = crashTid,
                             .sig = crashSig,
@@ -295,16 +299,17 @@ static void* crashHandleRoutine(void* args) {
                             .sigSubName = getSigSubName(crashSig, crashSigSub),
                             .time = crashTime,
                             .stackResult = DumpStackResult {
-                                .size = crashStackSize,
-                                .maxSingleStackSize = maxSingleStackSize,
+                                .stackSize = stackSize,
+                                .stackStrSize = stackStrSize,
                                 .maxStackSize = maxStackSize,
+                                .maxStackStrSize = maxStackStrSize,
                                 .stacks = stacks
                             }
                         };
                         args_t->crashHandle(jniEnv, args_t->obj, &crashData);
                         free(stacks);
                     } else {
-                        LOGE("Wrong size.");
+                        LOGE("Wrong stackSize.");
                     }
                     close(cacheFd);
                 } else {
