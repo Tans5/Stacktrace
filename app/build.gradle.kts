@@ -16,12 +16,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        externalNativeBuild {
-            cmake {
-                arguments.add("-DANDROID_ARM_MODE=arm")
-                arguments.add("-DANDROID_STL=c++_shared")
-            }
-        }
+//        externalNativeBuild {
+//            cmake {
+//                arguments.add("-DANDROID_ARM_MODE=arm")
+//                arguments.add("-DANDROID_STL=c++_shared")
+//            }
+//        }
     }
 
     buildTypes {
