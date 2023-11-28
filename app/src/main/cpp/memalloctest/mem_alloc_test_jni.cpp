@@ -1,8 +1,6 @@
-//
-// Created by pengcheng.tan on 2023/11/27.
-//
 #include <jni.h>
 #include <cstdlib>
+#include <cstring>
 
 static void **testMemArray = nullptr;
 static int memArraySize = 0;
@@ -15,11 +13,8 @@ Java_com_tans_stacktrace_MainActivity_testAllocMem(
     if (size <= 0) return;
     testMemArray = static_cast<void **>(realloc(testMemArray, (++memArraySize) * sizeof(void *)));
     auto data = malloc(size);
+    memset(data, 0, size);
     testMemArray[memArraySize - 1] = data;
-    char *cData = static_cast<char *>(data);
-    for (int i = 0; i < size; i ++) {
-        cData[i] = 'a';
-    }
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -35,4 +30,15 @@ Java_com_tans_stacktrace_MainActivity_freeAllTestMem(
     free(testMemArray);
     testMemArray = nullptr;
     memArraySize = 0;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_tans_stacktrace_MainActivity_testVisitOutBoundArray(
+        JNIEnv* env,
+        jobject /* this */) {
+    int size = sizeof(int) * 5;
+    int *array = static_cast<int *>(malloc(size));
+    memset(array, 1, size);
+    int a = array[5];
+    free(array);
 }

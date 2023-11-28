@@ -1,6 +1,3 @@
-//
-// Created by pengcheng.tan on 2023/11/20.
-//
 #ifndef STACKTRACE_ANDROID_LOG_H
 #define STACKTRACE_ANDROID_LOG_H
 

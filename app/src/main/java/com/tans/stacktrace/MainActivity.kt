@@ -80,8 +80,8 @@ class MainActivity : AppCompatActivity() {
             freeAllTestMem()
         }
 
-        binding.dumpMemBt.setOnClickListener {
-            // TODO:
+        binding.outboundArrayBt.setOnClickListener {
+            testVisitOutBoundArray()
         }
     }
 
@@ -109,6 +109,9 @@ class MainActivity : AppCompatActivity() {
 
     @Keep
     private external fun freeAllTestMem()
+
+    @Keep
+    private external fun testVisitOutBoundArray()
 
     companion object {
         init {

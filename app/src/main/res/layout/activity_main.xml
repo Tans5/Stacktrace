@@ -72,10 +72,10 @@
             android:padding="5dp" />
 
         <Button
-            android:id="@+id/dump_mem_bt"
+            android:id="@+id/outbound_array_bt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Dump Mem"
+            android:text="Outbound Array"
             android:textSize="11sp"
             android:padding="5dp" />
     </LinearLayout>
