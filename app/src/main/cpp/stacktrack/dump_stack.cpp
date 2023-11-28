@@ -72,15 +72,17 @@ void dumpStack(DumpStackResult* result, int skip) {
             size = realWriteSize;
         }
         result->stackSize = size;
+        result->stackStrSize = wroteOffsetInBytes;
     } else {
         result->stackSize = 0;
+        result->stackStrSize = 0;
     }
 }
 
-void computeStringsOffsets(const char *strings, StringsOffsetsResult *result) {
+void computeStringsOffsets(const char *strings, int maxCharsSize, StringsOffsetsResult *result) {
     result->offsets[0] = 0;
     int strOffsetsIndex = 0;
-    for (int i = 0; i < result->maxOffsetsSize; i ++) {
+    for (int i = 0; i < maxCharsSize; i ++) {
         if (strings[i] == 0x00) {
             result->offsets[++strOffsetsIndex] = (i + 1);
             if (strOffsetsIndex >= (result->maxOffsetsSize - 1)) {
@@ -95,7 +97,7 @@ void printStackResult(DumpStackResult *result) {
     StringsOffsetsResult offsetsResult;
     offsetsResult.maxOffsetsSize = result->stackSize;
     offsetsResult.offsets = static_cast<int *>(malloc(sizeof(int) * result->stackSize));
-    computeStringsOffsets(result->stacks, &offsetsResult);
+    computeStringsOffsets(result->stacks, result->stackStrSize, &offsetsResult);
     for (int i = 0; i < offsetsResult.offsetsSize + 1; i ++) {
         char *str = result->stacks + offsetsResult.offsets[i];
         LOGE("%s", str);

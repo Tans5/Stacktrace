@@ -21,7 +21,7 @@ void crashHandle(JNIEnv *env, jobject obj, CrashData *crashData) {
     StringsOffsetsResult offsetsResult;
     offsetsResult.offsets = static_cast<int *>(malloc(sizeof(int) * stackResult.stackStrSize));
     offsetsResult.maxOffsetsSize = stackResult.stackSize;
-    computeStringsOffsets(stackResult.stacks, &offsetsResult);
+    computeStringsOffsets(stackResult.stacks, stackResult.stackStrSize, &offsetsResult);
     jobjectArray jStacks = env->NewObjectArray(offsetsResult.offsetsSize, env->FindClass("java/lang/String"), nullptr);
     for (int i = 0; i < offsetsResult.offsetsSize; i ++) {
         char *targetStr = stackResult.stacks + offsetsResult.offsets[i];
@@ -84,11 +84,11 @@ Java_com_tans_stacktrace_MainActivity_dumpTestThreadStack(
     DumpStackResult stackResult;
     stackResult.stacks = static_cast<char *>(malloc(stackResult.maxStackStrSize));
     add10DumpStack(20, &stackResult);
-    printStackResult(&stackResult);
+    // printStackResult(&stackResult);
     StringsOffsetsResult offsetsResult;
     offsetsResult.offsets = static_cast<int *>(malloc(stackResult.stackSize * sizeof(int)));
     offsetsResult.maxOffsetsSize = stackResult.stackSize;
-    computeStringsOffsets(stackResult.stacks, &offsetsResult);
+    computeStringsOffsets(stackResult.stacks, stackResult.stackStrSize, &offsetsResult);
     jobjectArray jStacks = env->NewObjectArray(offsetsResult.offsetsSize, env->FindClass("java/lang/String"), nullptr);
     for (int i = 0; i < offsetsResult.offsetsSize; i ++) {
         char *targetStr = stackResult.stacks + offsetsResult.offsets[i];

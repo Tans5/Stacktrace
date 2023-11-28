@@ -34,7 +34,7 @@ typedef struct StringsOffsetsResult {
  */
 void dumpStack(DumpStackResult* result, int skip);
 
-void computeStringsOffsets(const char *strings, StringsOffsetsResult *result);
+void computeStringsOffsets(const char *strings, int maxCharsSize, StringsOffsetsResult *result);
 
 void printStackResult(DumpStackResult* result);
 
