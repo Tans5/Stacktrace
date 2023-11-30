@@ -9,8 +9,19 @@
 #include "waithook.h"
 #include "../android_log.h"
 
+static jobject mainAct = nullptr;
+static JNIEnv *jniEnv = nullptr;
+
 void *my_malloc(size_t s) {
-    LOGD("my_alloc: %d", s);
+    if (mainAct != nullptr && jniEnv != nullptr) {
+        auto clazz = jniEnv->FindClass("com/tans/stacktrace/MainActivity");
+        auto methodId = jniEnv->GetMethodID(clazz, "hookMessage", "(Ljava/lang/String;)V");
+        char *chars = static_cast<char *>(malloc(50));
+        sprintf(chars, "Alloc %d bytes", s);
+        auto jString = jniEnv->NewStringUTF(chars);
+        jniEnv->CallVoidMethod(mainAct, methodId, jString);
+        LOGD("my_alloc: %d", s);
+    }
     return malloc(s);
 }
 
@@ -45,11 +56,15 @@ void hookMalloc() {
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_tans_stacktrace_MainActivity_sayHello(
         JNIEnv* env,
-        jobject /* this */) {
+        jobject act /* this */) {
+    jniEnv = env;
+    mainAct = act;
     auto msg = allocMessage(20);
     sayHello(msg);
     auto jString = env->NewStringUTF(msg->chars);
     freeMessage(msg);
+    jniEnv = nullptr;
+    mainAct = nullptr;
     return jString;
 }
 

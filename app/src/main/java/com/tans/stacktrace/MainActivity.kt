@@ -128,6 +128,30 @@ class MainActivity : AppCompatActivity() {
     @Keep
     private external fun hook()
 
+    /**
+     * Call from native
+     */
+    @Keep
+    fun hookMessage(s: String) {
+        val msg = "Message from hookMessage: $s"
+        Log.d(TAG, msg)
+        val stacks = dumpTestThreadStack()
+        val startStack = stacks.find { it.contains("libhook.so") }
+        if (startStack == null) {
+            binding.outputTv.text = s
+        } else {
+            val startIndex = stacks.indexOf(startStack)
+            val cutStacks = stacks.copyOfRange(startIndex, stacks.size)
+            val content = StringBuilder()
+            content.appendLine(s)
+            content.appendLine()
+            for (stack in cutStacks) {
+                content.appendLine(stack)
+            }
+            binding.outputTv.text = content.toString()
+        }
+    }
+
     companion object {
         init {
             System.loadLibrary("stacktrace")
@@ -136,6 +160,9 @@ class MainActivity : AppCompatActivity() {
         }
         private const val TAG = "Stacktrace_MainActivity"
 
+        /**
+         * Call from native
+         */
         @Keep
         @JvmStatic
         fun handleNativeCrash(
