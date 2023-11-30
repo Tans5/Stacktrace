@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.os.Process
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.Keep
 import androidx.core.content.getSystemService
 import com.tans.stacktrace.databinding.ActivityMainBinding
@@ -83,6 +84,14 @@ class MainActivity : AppCompatActivity() {
         binding.outboundArrayBt.setOnClickListener {
             testVisitOutBoundArray()
         }
+
+        binding.sayHelloBt.setOnClickListener {
+            Toast.makeText(this, sayHello(), Toast.LENGTH_SHORT).show()
+        }
+
+        binding.hookMallocBt.setOnClickListener {
+            hook()
+        }
     }
 
     private fun registerCrashMonitor() {
@@ -113,13 +122,47 @@ class MainActivity : AppCompatActivity() {
     @Keep
     private external fun testVisitOutBoundArray()
 
+    @Keep
+    private external fun sayHello(): String
+
+    @Keep
+    private external fun hook()
+
+    /**
+     * Call from native
+     */
+    @Keep
+    fun hookMessage(s: String) {
+        val msg = "Message from hookMessage: $s"
+        Log.d(TAG, msg)
+        val stacks = dumpTestThreadStack()
+        val startStack = stacks.find { it.contains("libhook.so") }
+        if (startStack == null) {
+            binding.outputTv.text = s
+        } else {
+            val startIndex = stacks.indexOf(startStack)
+            val cutStacks = stacks.copyOfRange(startIndex, stacks.size)
+            val content = StringBuilder()
+            content.appendLine(s)
+            content.appendLine()
+            for (stack in cutStacks) {
+                content.appendLine(stack)
+            }
+            binding.outputTv.text = content.toString()
+        }
+    }
+
     companion object {
         init {
             System.loadLibrary("stacktrace")
             System.loadLibrary("memalloctest")
+            System.loadLibrary("hook")
         }
         private const val TAG = "Stacktrace_MainActivity"
 
+        /**
+         * Call from native
+         */
         @Keep
         @JvmStatic
         fun handleNativeCrash(
