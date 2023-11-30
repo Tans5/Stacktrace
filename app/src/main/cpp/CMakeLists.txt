@@ -39,8 +39,7 @@ add_library(waithook SHARED
 add_library(hook SHARED
         hook/hook.cpp
         hook/waithook.h
-        android_log.h
-)
+        android_log.h)
 
 target_link_libraries(hook
         android

@@ -88,6 +88,10 @@ class MainActivity : AppCompatActivity() {
         binding.sayHelloBt.setOnClickListener {
             Toast.makeText(this, sayHello(), Toast.LENGTH_SHORT).show()
         }
+
+        binding.hookMallocBt.setOnClickListener {
+            hook()
+        }
     }
 
     private fun registerCrashMonitor() {
@@ -120,6 +124,9 @@ class MainActivity : AppCompatActivity() {
 
     @Keep
     private external fun sayHello(): String
+
+    @Keep
+    private external fun hook()
 
     companion object {
         init {
