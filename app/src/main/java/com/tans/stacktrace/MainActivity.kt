@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.os.Process
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.Keep
 import androidx.core.content.getSystemService
 import com.tans.stacktrace.databinding.ActivityMainBinding
@@ -83,6 +84,10 @@ class MainActivity : AppCompatActivity() {
         binding.outboundArrayBt.setOnClickListener {
             testVisitOutBoundArray()
         }
+
+        binding.sayHelloBt.setOnClickListener {
+            Toast.makeText(this, sayHello(), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun registerCrashMonitor() {
@@ -113,10 +118,14 @@ class MainActivity : AppCompatActivity() {
     @Keep
     private external fun testVisitOutBoundArray()
 
+    @Keep
+    private external fun sayHello(): String
+
     companion object {
         init {
             System.loadLibrary("stacktrace")
             System.loadLibrary("memalloctest")
+            System.loadLibrary("hook")
         }
         private const val TAG = "Stacktrace_MainActivity"
 

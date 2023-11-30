@@ -31,3 +31,18 @@ target_link_libraries(memalloctest
 
 #target_compile_options(memalloctest PUBLIC -fsanitize=address -fno-omit-frame-pointer)
 #set_target_properties(memalloctest PROPERTIES LINK_FLAGS -fsanitize=address)
+
+add_library(waithook SHARED
+        hook/waithook.cpp
+        hook/waithook.h)
+
+add_library(hook SHARED
+        hook/hook.cpp
+        hook/waithook.h
+        android_log.h
+)
+
+target_link_libraries(hook
+        android
+        log
+        waithook)
